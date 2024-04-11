@@ -1,17 +1,12 @@
-from flask import Flask, jsonify, request
-from .models import db, User, Story, Comment
+from flask import jsonify
+from . import app
+from .news_api import fetch_news
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../db/news.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
-
-@app.route('/api/stories/<int:story_id>/comments', methods=['GET'])
-def get_comments(story_id):
-    comments = Comment.query.filter_by(story_id=story_id).all()
-    return jsonify([comment.serialize() for comment in comments])
-
-# Other routes for fetching stories, user profiles, etc.
-
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.route('/api/news', methods=['GET'])
+def get_news():
+    # Fetch news data from the News API
+    news_data = fetch_news()
+    if news_data:
+        return jsonify({'status': 'success', 'articles': news_data})
+    else:
+        return jsonify({'status': 'error', 'message': 'Failed to fetch news data'}), 500
